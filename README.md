@@ -4,6 +4,10 @@ BitBrush is a Pocket Pixel Art Studio empowering generation and editing workflow
 
 It's a web-based application that allows users to create, edit, and share pixel art easily.
 
+## Use It
+
+BitBrush is available for use in your browser at [bitbrush.sircrumpet.com](https://bitbrush.sircrumpet.com)
+
 ## Origin
 
 BitBrush was initially built to easily generate 16x16 pixel icons for the Yoto Player screens. The Yoto Player, an audio device for children, features a small black pixel display that supports custom icons displayed on a per track / chapter basis. BitBrush streamlines the process of creating these icons, allowing for quick and efficient design of visually appealing 16x16 pixel art that perfectly fits the Yoto Player's display capabilities.
@@ -40,7 +44,6 @@ BitBrush was initially built to easily generate 16x16 pixel icons for the Yoto P
    ```
 3. Create a `.env` file in the root directory and add your OpenAI API key:
    ```
-   VITE_OPENAI_API_KEY=your_api_key_here
    VITE_OPENAI_MODEL=gpt-4o
    ```
 4. Start the development server:
