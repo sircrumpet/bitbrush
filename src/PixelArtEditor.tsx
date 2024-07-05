@@ -28,6 +28,7 @@ import {
   Clipboard,
   Sun,
   Moon,
+  Settings,
 } from "lucide-react";
 import axios from "axios";
 import { cn } from "@/lib/utils";
@@ -38,6 +39,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 interface PixelArtInstructions {
   title: string;
@@ -79,6 +81,26 @@ const PixelArtEditor: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
   const [cropThreshold, setCropThreshold] = useState<number>(0);
   const [maxCropThreshold, setMaxCropThreshold] = useState<number>(100);
+
+  const [apiKey, setApiKey] = useState<string>("");
+  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const savedApiKey = localStorage.getItem("openai_api_key");
+    if (savedApiKey) {
+      setApiKey(savedApiKey);
+    }
+  }, []);
+
+  const saveApiKey = () => {
+    localStorage.setItem("openai_api_key", apiKey);
+    setIsSettingsOpen(false);
+    toast({
+      title: "API Key Saved",
+      description: "Your OpenAI API key has been saved successfully.",
+    });
+  };
 
   useEffect(() => {
     const saved = localStorage.getItem("savedPixelArts");
@@ -252,6 +274,16 @@ const PixelArtEditor: React.FC = () => {
   };
 
   const generateTitleAndDescription = async (imageUrl: string) => {
+    if (!apiKey) {
+      toast({
+        title: "API Key Missing",
+        description: "Please set your OpenAI API key in the settings.",
+        variant: "destructive",
+      });
+      setIsSettingsOpen(true);
+      return title;
+    }
+
     setIsTitleDescriptionLoading(true);
     try {
       const response = await axios.post(
@@ -299,7 +331,7 @@ const PixelArtEditor: React.FC = () => {
         },
         {
           headers: {
-            Authorization: `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
+            Authorization: `Bearer ${apiKey}`,
             "Content-Type": "application/json",
           },
         }
@@ -1025,6 +1057,13 @@ ${pixelGrid.join("\n")}`;
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+            <Button
+              onClick={() => setIsSettingsOpen(true)}
+              className="p-2 text-white bg-gray-500 rounded-full hover:bg-gray-600"
+              title="Settings"
+            >
+              <Settings className="w-6 h-6" />
+            </Button>
           </div>
         </div>
       </div>
@@ -1035,6 +1074,44 @@ ${pixelGrid.join("\n")}`;
           </div>
         </div>
       )}
+      <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Settings</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="flex flex-col space-y-2">
+              <label
+                htmlFor="api-key"
+                className="text-sm font-medium text-gray-700"
+              >
+                OpenAI API Key
+              </label>
+              <Input
+                id="api-key"
+                type="password"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder="Enter your OpenAI API key"
+              />
+              <a
+                href="https://platform.openai.com/api-keys"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-blue-500 hover:underline"
+              >
+                Get your API key here
+              </a>
+            </div>
+            <Button
+              onClick={saveApiKey}
+              className="w-full text-white bg-blue-500"
+            >
+              Save API Key
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
