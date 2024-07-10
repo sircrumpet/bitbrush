@@ -174,11 +174,13 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(
     };
 
     const handleMouseUp = () => {
-      setIsDrawing(false);
-      setDragStart(null);
-      if (tool !== "transform") {
-        addToHistory([...pixels]);
+      if (isDrawing) {
+        if (tool !== "transform") {
+          addToHistory([...pixels]);
+        }
+        setIsDrawing(false);
       }
+      setDragStart(null);
     };
 
     const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {

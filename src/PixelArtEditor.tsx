@@ -308,8 +308,7 @@ const PixelArtEditor: React.FC = () => {
       setPixels(newPixels);
       addToHistory(newPixels);
       setShowPixelated(true);
-      // Don't set the tool to "draw" here, so the user can continue transforming if needed
-      // Don't remove the uploaded image
+      setTool("draw");
     }
   };
 
