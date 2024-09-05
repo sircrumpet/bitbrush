@@ -41,27 +41,53 @@ const ImageImporter: React.FC<ImageImporterProps> = ({
     }
   };
 
+  const handleSnapThreshold = (value: number) => {
+    setBackgroundThreshold(Math.max(0, Math.min(255, value)));
+  };
+
   return (
-    <div className="p-4 bg-gray-100 border border-gray-300 rounded-lg shadow-lg">
+    <div className="p-4 bg-gray-100 rounded-lg border border-gray-300 shadow-lg">
       <h4 className="mb-2 font-semibold text-md">Paste / Import Image</h4>
-      <div className="flex flex-col space-y-2">
-        <label className="text-sm font-medium text-gray-700">
-          Background Threshold: {backgroundThreshold}
-        </label>
-        <Slider
-          value={[backgroundThreshold]}
-          onValueChange={(value) => setBackgroundThreshold(value[0])}
-          min={0}
-          max={255}
-          step={1}
-          className="w-full p-4 bg-gray-200 rounded"
-        />
+      <div className="overflow-hidden mb-3 bg-gray-50 rounded-lg shadow-md">
+        <div className="px-4 py-2 text-white bg-gradient-to-r from-blue-500 to-purple-500">
+          <h5 className="text-sm font-semibold">Background Threshold</h5>
+        </div>
+        <div className="p-4 pb-2">
+          <Slider
+            min={0}
+            max={255}
+            step={1}
+            value={[backgroundThreshold]}
+            onValueChange={(value) => setBackgroundThreshold(value[0])}
+            className="mb-2"
+          />
+        </div>
+        <div className="flex text-xs text-gray-600 bg-gray-100 border-t border-gray-200">
+          <button
+            className="flex-1 py-3 transition-colors duration-200 hover:bg-gray-200"
+            onClick={() => handleSnapThreshold(backgroundThreshold - 10)}
+          >
+            Darker
+          </button>
+          <button
+            className="flex-1 py-3 border-gray-200 transition-colors duration-200 hover:bg-gray-200 border-x"
+            onClick={() => handleSnapThreshold(128)}
+          >
+            None
+          </button>
+          <button
+            className="flex-1 py-3 transition-colors duration-200 hover:bg-gray-200"
+            onClick={() => handleSnapThreshold(backgroundThreshold + 10)}
+          >
+            Lighter
+          </button>
+        </div>
       </div>
       <Button
         onClick={() => fileInputRef.current?.click()}
-        className="w-full mt-2 text-white bg-green-500"
+        className="mt-2 w-full text-white bg-green-500"
       >
-        <Upload className="w-4 h-4 mr-2" /> Upload Image
+        <Upload className="mr-2 w-4 h-4" /> Upload Image
       </Button>
       <input
         type="file"
@@ -88,9 +114,9 @@ const ImageImporter: React.FC<ImageImporterProps> = ({
             }`}
           >
             {tool === "transform" ? (
-              <Check className="w-4 h-4 mr-2" />
+              <Check className="mr-2 w-4 h-4" />
             ) : (
-              <Move className="w-4 h-4 mr-2" />
+              <Move className="mr-2 w-4 h-4" />
             )}
             {tool === "transform" ? "Apply Changes" : "Transform"}
           </Button>
@@ -106,14 +132,14 @@ const ImageImporter: React.FC<ImageImporterProps> = ({
                   min={0.1}
                   max={2}
                   step={0.01}
-                  className="w-full p-4 bg-gray-200 rounded"
+                  className="p-4 w-full bg-gray-200 rounded"
                 />
               </div>
               <Button
                 onClick={handleRotate}
                 className="w-full text-gray-800 bg-gray-200"
               >
-                <RotateCw className="w-4 h-4 mr-2" /> Rotate 90°
+                <RotateCw className="mr-2 w-4 h-4" /> Rotate 90°
               </Button>
               <Button
                 onClick={setShowPixelated}
@@ -121,11 +147,11 @@ const ImageImporter: React.FC<ImageImporterProps> = ({
               >
                 {showPixelated ? (
                   <>
-                    <Eye className="w-4 h-4 mr-2" /> Show Original
+                    <Eye className="mr-2 w-4 h-4" /> Show Original
                   </>
                 ) : (
                   <>
-                    <EyeOff className="w-4 h-4 mr-2" /> Show Pixelated
+                    <EyeOff className="mr-2 w-4 h-4" /> Show Pixelated
                   </>
                 )}
               </Button>
@@ -133,7 +159,7 @@ const ImageImporter: React.FC<ImageImporterProps> = ({
                 onClick={() => setTool("draw")}
                 className="w-full text-white bg-red-500"
               >
-                <X className="w-4 h-4 mr-2" /> Cancel
+                <X className="mr-2 w-4 h-4" /> Cancel
               </Button>
             </>
           )}

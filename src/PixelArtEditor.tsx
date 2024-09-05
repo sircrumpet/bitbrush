@@ -58,7 +58,7 @@ const PixelArtEditor: React.FC = () => {
 
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [showPixelated, setShowPixelated] = useState<boolean>(false);
-  const [backgroundThreshold, setBackgroundThreshold] = useState<number>(220);
+  const [backgroundThreshold, setBackgroundThreshold] = useState<number>(128);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -218,6 +218,8 @@ const PixelArtEditor: React.FC = () => {
       const imageData = ctx.getImageData(0, 0, 320, 320);
       const newPixels: string[] = [];
 
+      const midpoint = 128;
+
       for (let y = 0; y < 16; y++) {
         for (let x = 0; x < 16; x++) {
           const i = ((y * 20 + 10) * 320 + (x * 20 + 10)) * 4;
@@ -227,8 +229,20 @@ const PixelArtEditor: React.FC = () => {
           const a = imageData.data[i + 3];
           const brightness = (r + g + b) / 3;
 
+          let isTransparent;
+          if (options.backgroundThreshold === midpoint) {
+            isTransparent = false; // No thresholding at midpoint
+          } else if (options.backgroundThreshold > midpoint) {
+            // White thresholding
+            isTransparent = brightness >= options.backgroundThreshold;
+          } else {
+            // Black thresholding
+            const darknessThreshold = 127 - options.backgroundThreshold;
+            isTransparent = brightness <= darknessThreshold;
+          }
+
           newPixels.push(
-            brightness > options.backgroundThreshold || a === 0
+            isTransparent || a === 0
               ? "transparent"
               : `rgba(${r},${g},${b},${a / 255})`
           );
@@ -634,13 +648,27 @@ const PixelArtEditor: React.FC = () => {
                 <Moon className="w-6 h-6" />
               )}
             </Button>
-            <Button
-              onClick={generateTitleDescriptionFromCanvas}
-              className="p-2 text-white bg-blue-500 rounded-full hover:bg-blue-600"
-              title="Generate Title and Description"
-            >
-              <Sparkles className="w-6 h-6" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  className="p-2 text-white bg-blue-500 rounded-full hover:bg-blue-600"
+                  title="AI Features"
+                >
+                  <Sparkles className="w-6 h-6" />
+                  <ChevronDown className="ml-1 w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onSelect={generateTitleDescriptionFromCanvas}>
+                  Generate Title and Description
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={() => setIsAIGeneratorVisible(true)}
+                >
+                  Generate Pixel Art
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button className="p-2 text-white bg-green-500 rounded-full hover:bg-green-600">
@@ -667,27 +695,6 @@ const PixelArtEditor: React.FC = () => {
             >
               <Settings className="w-6 h-6" />
             </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  className="p-2 text-white bg-blue-500 rounded-full hover:bg-blue-600"
-                  title="AI Features"
-                >
-                  <Sparkles className="w-6 h-6" />
-                  <ChevronDown className="ml-1 w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onSelect={generateTitleDescriptionFromCanvas}>
-                  Generate Title and Description
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onSelect={() => setIsAIGeneratorVisible(true)}
-                >
-                  Generate Pixel Art
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </div>
       </div>
