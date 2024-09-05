@@ -33,11 +33,14 @@ app.post("/api/generate-images", async (req, res) => {
         version:
           "83bd408fc5d2988389c1c1bcdde75545dc0f4ad42aae83082991edcf75a815b2",
         input: {
-          prompt: `A 16x16 pixel iconic representation of ${title}. ${description}. Image with black transparent background in the style of BITBRUSH.`,
+          prompt: `A 16x16 pixel iconic representation of ${title}${
+            description ? `. ${description}` : ""
+          }. Image with black transparent background in the style of BITBRUSH.`,
           model: "dev",
           num_outputs: 1,
           guidance_scale: 3.5,
           num_inference_steps: 28,
+          disable_safety_checker: true,
         },
       },
       {
@@ -109,7 +112,12 @@ app.get("/api/predictions/:id", async (req, res) => {
     if (prediction.status === "succeeded") {
       res.json({ status: "succeeded", output: prediction.output });
     } else if (prediction.status === "failed") {
-      res.status(400).json({ status: "failed", error: prediction.error });
+      // Handle the failed status
+      console.error("Prediction failed:", prediction.error);
+      res.status(400).json({
+        status: "failed",
+        error: prediction.error || "Image generation failed",
+      });
     } else {
       res.json({ status: prediction.status });
     }
