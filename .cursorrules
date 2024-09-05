@@ -1,0 +1,118 @@
+# BitBrush .cursorrules file
+
+# Project Context
+
+project_description: |
+BitBrush is a web-based Pocket Pixel Art Studio for creating, editing, and sharing 16x16 pixel art.
+It was initially built for generating icons for Yoto Player screens but has expanded in functionality.
+
+# Technologies
+
+technologies:
+
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- Radix UI
+- Axios
+- OpenAI API
+- Replicate API
+
+# Code Style
+
+code_style:
+
+- Use TypeScript for all new files and components
+- Follow React functional component patterns with hooks
+- Use Tailwind CSS for styling, avoiding custom CSS when possible
+- Implement responsive design for all components
+- Use meaningful variable and function names that describe their purpose
+- Keep functions small and focused on a single task
+- Use async/await for asynchronous operations
+- Write unit tests for all new features and bug fixes
+
+# Best Practices
+
+best_practices:
+
+- Prioritize accessibility in all UI components
+- Optimize performance, especially for image processing operations
+- Implement error handling for API calls and user interactions
+- Use React context for global state management
+- Implement proper TypeScript typing for all functions and components
+- Use constants for magic numbers and strings
+- Implement lazy loading for performance-heavy components
+- Use memoization (useMemo, useCallback) for expensive calculations
+
+# Feature-Specific Guidelines
+
+pixel_art_editor:
+
+- Implement efficient algorithms for drawing and filling operations
+- Ensure undo/redo functionality is robust and memory-efficient
+- Optimize canvas rendering for smooth performance
+
+image_import:
+
+- Implement error handling for various image formats and sizes
+- Optimize image processing algorithms for quick conversion to pixel art
+- Provide clear user feedback during import and processing
+
+ai_integration:
+
+- Implement proper error handling and rate limiting for OpenAI and Replicate API calls
+- Ensure AI-generated content is clearly marked as such
+- Provide options for users to regenerate or edit AI-generated content
+
+export_functionality:
+
+- Ensure exported images maintain pixel-perfect quality
+- Implement various export options (PNG, clipboard copy in different sizes)
+- Provide clear feedback on export success or failure
+
+# Security Considerations
+
+security:
+
+- Never expose API keys in client-side code
+- Implement proper input sanitization for user-generated content
+- Use secure methods for storing user creations (if applicable)
+
+# Performance Considerations
+
+performance:
+
+- Optimize canvas operations for smooth drawing experience
+- Implement efficient state management to avoid unnecessary re-renders
+- Use web workers for heavy computational tasks if needed
+- Implement proper caching strategies for API responses and processed images
+
+# Accessibility Guidelines
+
+accessibility:
+
+- Ensure proper contrast ratios for all UI elements
+- Implement keyboard navigation for all interactive elements
+- Provide alternative text for all images and icons
+- Ensure the application is usable with screen readers
+
+# Documentation
+
+documentation:
+
+- Keep README.md up to date with new features and changes
+- Document complex algorithms and data structures inline
+- Maintain clear and concise component and function documentation
+- Update user documentation for new features or significant changes
+
+# Version Control
+
+version_control:
+
+- Use meaningful commit messages describing the changes made
+- Create feature branches for new developments
+- Regularly merge main branch into feature branches to avoid conflicts
+- Use pull requests for code reviews before merging into main
+
+# Remember to adapt these rules as the project evolves and new requirements emerge.

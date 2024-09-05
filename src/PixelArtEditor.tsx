@@ -32,15 +32,18 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 import usePixelArt from "./hooks/usePixelArt";
 import useTitleDescription from "./hooks/useTitleDescription";
 import { loadImage } from "./utils/imageUtils";
+import AIImageGenerator from "./components/AIImageGenerator";
+import AIGenerationPanel from "./components/AIGenerationPanel";
 
 const PixelArtEditor: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [apiKey, setApiKey] = useState("");
+  const [openAIApiKey, setOpenAIApiKey] = useState("");
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
   const [savedArts, setSavedArts] = useState<{ [key: string]: string }>({});
   const [uploadedImage, setUploadedImage] = useState<HTMLImageElement | null>(
@@ -85,12 +88,14 @@ const PixelArtEditor: React.FC = () => {
     setDescription,
     isTitleDescriptionLoading,
     generateTitleAndDescription,
-  } = useTitleDescription(apiKey);
+  } = useTitleDescription(openAIApiKey);
+
+  const [isAIGeneratorVisible, setIsAIGeneratorVisible] = useState(false);
 
   useEffect(() => {
-    const savedApiKey = localStorage.getItem("openai_api_key");
-    if (savedApiKey) {
-      setApiKey(savedApiKey);
+    const savedOpenAIApiKey = localStorage.getItem("openai_api_key");
+    if (savedOpenAIApiKey) {
+      setOpenAIApiKey(savedOpenAIApiKey);
     }
     const saved = localStorage.getItem("savedPixelArts");
     if (saved) {
@@ -122,14 +127,23 @@ const PixelArtEditor: React.FC = () => {
 
   const processUploadedImage = (img: HTMLImageElement) => {
     setUploadedImage(img);
+    // Set the zoom level based on the image size
+    const imageZoomLevel = 320 / Math.max(img.width, img.height);
+    console.log("Calculating zoom level for image:", {
+      desired: 320,
+      width: img.width,
+      height: img.height,
+      imageZoomLevel,
+    });
     const newPixels = processImage(img, {
       rotation: imageTransform.rotation,
-      scale: zoomLevel,
+      scale: imageZoomLevel,
       backgroundThreshold,
       x: imageTransform.x,
       y: imageTransform.y,
     });
     setPixels(newPixels);
+    setZoomLevel(imageZoomLevel);
     addToHistory(newPixels);
     setTool("transform");
     setImageTransform({ x: 0, y: 0, scale: 1, rotation: 0 });
@@ -308,14 +322,13 @@ const PixelArtEditor: React.FC = () => {
       setPixels(newPixels);
       addToHistory(newPixels);
       setShowPixelated(true);
-      setTool("draw");
     }
   };
 
   const togglePixelated = () => {
     setShowPixelated((prev) => !prev);
     if (!showPixelated) {
-      // If switching to pixelated view, update the pixels
+      // If switching to pixelated view, update the pixels without changing zoom
       handleApplyTransform();
     }
   };
@@ -343,8 +356,8 @@ const PixelArtEditor: React.FC = () => {
     document.documentElement.classList.toggle("dark");
   };
 
-  const saveApiKey = () => {
-    localStorage.setItem("openai_api_key", apiKey);
+  const saveApiKeys = () => {
+    localStorage.setItem("openai_api_key", openAIApiKey);
     setIsSettingsOpen(false);
     toast({
       title: "API Key Saved",
@@ -482,10 +495,42 @@ const PixelArtEditor: React.FC = () => {
     link.click();
   };
 
+  const handleAIGeneratedImage = (imageUrl: string) => {
+    fetch(imageUrl)
+      .then((response) => response.blob())
+      .then((blob) => {
+        const img = new Image();
+        img.onload = () => {
+          const scale = 320 / Math.max(img.width, img.height);
+          console.log("Calculating scale for image:", {
+            desired: 320,
+            width: img.width,
+            height: img.height,
+            scale,
+          });
+          setUploadedImage(img);
+          setImageTransform({ x: 0, y: 0, scale, rotation: 0 });
+          setZoomLevel(scale);
+          setTool("transform");
+          setShowPixelated(false);
+          updatePreview();
+        };
+        img.src = URL.createObjectURL(blob);
+      })
+      .catch((error) => {
+        console.error("Error loading AI generated image:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load the generated image. Please try again.",
+          variant: "destructive",
+        });
+      });
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gray-100" onPaste={handlePaste}>
-      <div className="flex flex-1 overflow-hidden">
-        <div className="relative flex flex-col p-4 space-y-4 overflow-y-auto bg-white shadow-lg w-80">
+      <div className="flex overflow-hidden flex-1">
+        <div className="flex overflow-y-auto relative flex-col p-4 space-y-4 w-80 bg-white shadow-lg">
           <h1 className="text-2xl font-bold text-gray-800">BitBrush</h1>
           <ColorPicker
             currentColor={currentColor}
@@ -536,7 +581,7 @@ const PixelArtEditor: React.FC = () => {
           </Button>
           <PreviewGrid pixels={pixels} imageTransform={imageTransform} />
         </div>
-        <div className="flex flex-col items-center justify-center flex-1 p-8">
+        <div className="flex flex-col flex-1 justify-center items-center p-8">
           <TitleDescriptionInput
             title={title}
             setTitle={setTitle}
@@ -571,7 +616,7 @@ const PixelArtEditor: React.FC = () => {
               updatePreview={updatePreview}
             />
           </div>
-          <div className="absolute flex items-center p-2 space-x-2 bg-white rounded-full shadow-lg top-4 right-4">
+          <div className="flex absolute top-4 right-4 items-center p-2 space-x-2 bg-white rounded-full shadow-lg">
             <Button
               onClick={toggleDarkMode}
               className={`p-2 rounded-full ${
@@ -599,7 +644,7 @@ const PixelArtEditor: React.FC = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button className="p-2 text-white bg-green-500 rounded-full hover:bg-green-600">
-                  <Clipboard className="w-6 h-6 mr-1" />
+                  <Clipboard className="mr-1 w-6 h-6" />
                   <ChevronDown className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -622,6 +667,27 @@ const PixelArtEditor: React.FC = () => {
             >
               <Settings className="w-6 h-6" />
             </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  className="p-2 text-white bg-blue-500 rounded-full hover:bg-blue-600"
+                  title="AI Features"
+                >
+                  <Sparkles className="w-6 h-6" />
+                  <ChevronDown className="ml-1 w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onSelect={generateTitleDescriptionFromCanvas}>
+                  Generate Title and Description
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={() => setIsAIGeneratorVisible(true)}
+                >
+                  Generate Pixel Art
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
@@ -633,21 +699,20 @@ const PixelArtEditor: React.FC = () => {
           <div className="grid gap-4 py-4">
             <div className="flex flex-col space-y-2">
               <label
-                htmlFor="api-key"
+                htmlFor="openai-api-key"
                 className="text-sm font-medium text-gray-700"
               >
                 OpenAI API Key
               </label>
               <p className="text-sm text-gray-600">
                 We use the OpenAI API to generate creative titles and
-                descriptions for your pixel art. Your API key is required to
-                access this feature.
+                descriptions for your pixel art.
               </p>
               <Input
-                id="api-key"
+                id="openai-api-key"
                 type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
+                value={openAIApiKey}
+                onChange={(e) => setOpenAIApiKey(e.target.value)}
                 placeholder="Enter your OpenAI API key"
               />
               <a
@@ -660,7 +725,7 @@ const PixelArtEditor: React.FC = () => {
               </a>
             </div>
             <Button
-              onClick={saveApiKey}
+              onClick={saveApiKeys}
               className="w-full text-white bg-blue-500"
             >
               Save API Key
@@ -668,6 +733,13 @@ const PixelArtEditor: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
+      <AIGenerationPanel
+        isVisible={isAIGeneratorVisible}
+        onClose={() => setIsAIGeneratorVisible(false)}
+        title={title}
+        description={description}
+        onImageSelect={handleAIGeneratedImage}
+      />
     </div>
   );
 };

@@ -34,6 +34,7 @@ BitBrush was initially built to easily generate 16x16 pixel icons for the Yoto P
 - Radix UI
 - Axios
 - OpenAI API (for title and description generation)
+- Replicate API (for generating starter images)
 
 ## Getting Started
 
